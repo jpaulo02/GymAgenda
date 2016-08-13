@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_camera"
+            android:title="Routines" />
+        <!--android:icon="@drawable/ic_menu_camera"-->
+        <item
+            android:id="@+id/nav_gallery"
+            android:title="Exercises" />
+        <!--android:icon="@drawable/ic_menu_gallery"-->
+        <item
+            android:id="@+id/nav_slideshow"
+            android:title="Stats" />
+        <!--android:icon="@drawable/ic_menu_slideshow"-->
+        <item
+            android:id="@+id/nav_manage"
+            android:title="Logs" />
+        <!--android:icon="@drawable/ic_menu_manage"-->
+    </group>
+
+    <item android:title="Social">
+        <menu>
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="Music" />
+            <item
+                android:id="@+id/nav_send"
+                android:title="Friends" />
+            <!--android:icon="@drawable/ic_menu_send"-->
+        </menu>
+    </item>
+
+</menu>

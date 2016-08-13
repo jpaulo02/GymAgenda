@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "179355552324",
+    "project_id": "gym-agenda"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:179355552324:android:6ceca64ad62dcc09",
+        "android_client_info": {
+          "package_name": "com.brogrammers.paulo.gymagenda"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "179355552324-83i4r983iv673977ktvi8o7p7ngi9lju.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.brogrammers.paulo.gymagenda",
+            "certificate_hash": "26E12EB29B26507FE590862CE2183C030A6EF5F2"
+          }
+        },
+        {
+          "client_id": "179355552324-33dqfa6pt13ptetgbope0k2snu7lf86j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCTz11zW4TJ2JRnILi4SMyBBdi26rRYiU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
