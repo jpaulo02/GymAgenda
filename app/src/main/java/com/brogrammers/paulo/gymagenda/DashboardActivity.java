@@ -38,9 +38,12 @@ import com.spotify.sdk.android.player.PlayerState;
 public class DashboardActivity extends AppCompatActivity
         implements GoogleApiClient.OnConnectionFailedListener, NavigationView.OnNavigationItemSelectedListener, PlayerNotificationCallback, ConnectionStateCallback {
 
+    //spotify app client id
+    private static final String CLIENT_ID = "4f1072d78c0245d091989b0115460af4";
+    //client id from google dev console
     //private static final String CLIENT_ID = "179355552324-83i4r983iv673977ktvi8o7p7ngi9lju.apps.googleusercontent.com";
     // TODO: Replace with your redirect URI
-    //private static final String REDIRECT_URI = "yourcustomprotocol://callback";
+    private static final String REDIRECT_URI = "gymagenda://callback";
 
     private Player mPlayer;
     private static final int REQUEST_CODE = 1337;
@@ -96,14 +99,13 @@ public class DashboardActivity extends AppCompatActivity
         userNameTextView.setText(userName);
 
         //Spotify auth
-        /*
         AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID,
                 AuthenticationResponse.Type.TOKEN,
                 REDIRECT_URI);
         builder.setScopes(new String[]{"streaming"});
         AuthenticationRequest request = builder.build();
 
-        AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);*/
+        AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
         //spotifyAuthentication();
     }
 
@@ -187,7 +189,7 @@ public class DashboardActivity extends AppCompatActivity
         Intent loginActivity = new Intent(this, LoginActivity.class);
         startActivity(loginActivity);
     }
-/*
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
@@ -217,7 +219,7 @@ public class DashboardActivity extends AppCompatActivity
             }
         }
     }
-    */
+
 
     @Override
     public void onLoggedIn() {

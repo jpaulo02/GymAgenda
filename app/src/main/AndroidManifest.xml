@@ -19,6 +19,12 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="com.spotify.sdk.android.authentication.LoginActivity" />
+                <data android:scheme="LoginActivity" android:host="callback"/>
+            </intent-filter>
         </activity>
         <activity
             android:name=".MainActivity"
@@ -27,9 +33,10 @@
             android:name=".DashboardActivity"
             android:label="@string/title_activity_dashboard"
             android:theme="@style/AppTheme" />
-        <!--<activity-->
-            <!--android:name="com.spotify.sdk.android.authentication.LoginActivity"-->
-            <!--android:theme="@android:style/Theme.Translucent.NoTitleBar" />-->
+        <activity
+            android:name="com.spotify.sdk.android.authentication.LoginActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
     </application>
 
 </manifest>
