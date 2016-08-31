@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.style.ImageSpan;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -35,6 +38,17 @@ import com.spotify.sdk.android.player.Player;
 import com.spotify.sdk.android.player.PlayerNotificationCallback;
 import com.spotify.sdk.android.player.PlayerState;
 
+import java.net.HttpURLConnection;
+
+import kaaes.spotify.webapi.android.SpotifyApi;
+import kaaes.spotify.webapi.android.SpotifyService;
+import kaaes.spotify.webapi.android.models.Image;
+import kaaes.spotify.webapi.android.models.Track;
+import kaaes.spotify.webapi.android.models.UserPrivate;
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+
 public class DashboardActivity extends AppCompatActivity
         implements GoogleApiClient.OnConnectionFailedListener, NavigationView.OnNavigationItemSelectedListener, PlayerNotificationCallback, ConnectionStateCallback {
 
@@ -51,6 +65,9 @@ public class DashboardActivity extends AppCompatActivity
     private GoogleApiClient mGoogleApiClient;
     private TextView userNameTextView;
     private String userName;
+    private SpotifyApi api = new SpotifyApi();
+    public String NOW_PLAYING = null;
+    public Image ALBUM_ARTWORK = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +97,7 @@ public class DashboardActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, NOW_PLAYING, Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
@@ -102,7 +119,7 @@ public class DashboardActivity extends AppCompatActivity
         AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID,
                 AuthenticationResponse.Type.TOKEN,
                 REDIRECT_URI);
-        builder.setScopes(new String[]{"streaming"});
+        builder.setScopes(new String[]{"streaming", "playlist-read-private", "playlist-read-collaborative", "user-library-read", "user-read-email"});
         AuthenticationRequest request = builder.build();
 
         AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
@@ -194,13 +211,15 @@ public class DashboardActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
 
-        Log.d("DashboardActivity Ding", String.valueOf(resultCode));
-
         // Check if result comes from the correct activity
         if (requestCode == REQUEST_CODE) {
             AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
 
             if (response.getType() == AuthenticationResponse.Type.TOKEN) {
+                api.setAccessToken(response.getAccessToken());
+                SpotifyService spotifyService = api.getService();
+                UserPrivate spotifyUser = this.getSpotifyUser(spotifyService);
+                this.getSpotifyTrack(spotifyService);
                 Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
                 Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
                     @Override
@@ -208,7 +227,7 @@ public class DashboardActivity extends AppCompatActivity
                         mPlayer = player;
                         mPlayer.addConnectionStateCallback(DashboardActivity.this);
                         mPlayer.addPlayerNotificationCallback(DashboardActivity.this);
-                        mPlayer.play("spotify:track:2TpxZ7JUBn3uw46aR7qd6V");
+                        mPlayer.play("spotify:track:6WTZqt2ghvOxdmXCpGb84Z");
                     }
 
                     @Override
@@ -218,6 +237,38 @@ public class DashboardActivity extends AppCompatActivity
                 });
             }
         }
+    }
+
+    public UserPrivate getSpotifyUser(SpotifyService spotifyService){
+        spotifyService.getMe(new Callback<UserPrivate>() {
+            @Override
+            public void success(UserPrivate user, Response response) {
+                System.out.println("user email: " + user.email);
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                //activity.runOnUiThread(onFailed);
+            }
+        });
+        return null;
+    }
+
+    public String getSpotifyTrack(SpotifyService spotifyService){
+        spotifyService.getTrack("6WTZqt2ghvOxdmXCpGb84Z", new Callback<Track>() {
+            @Override
+            public void success(Track track, Response response) {
+                NOW_PLAYING = track.artists.get(0).name.toString() + " - "  + track.name;
+                ALBUM_ARTWORK = track.album.images.get(2);
+                System.out.println("user email: " + track.name);
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                //activity.runOnUiThread(onFailed);
+            }
+        });
+        return null;
     }
 
 

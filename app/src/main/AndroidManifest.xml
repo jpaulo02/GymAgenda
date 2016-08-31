@@ -37,6 +37,8 @@
             android:name="com.spotify.sdk.android.authentication.LoginActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+        <uses-permission android:name="android.permission.INTERNET"/>
+
     </application>
 
 </manifest>
