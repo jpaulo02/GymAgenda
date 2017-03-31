@@ -68,4 +68,5 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="user_welcome"></string>
     <string name="title_activity_login2">Sign in</string>
+    <string name="please_sign_in">Please Sign in.</string>
 </resources>

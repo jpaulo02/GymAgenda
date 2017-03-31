@@ -38,13 +38,21 @@ import com.spotify.sdk.android.player.Player;
 import com.spotify.sdk.android.player.PlayerNotificationCallback;
 import com.spotify.sdk.android.player.PlayerState;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.URL;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.UserPrivate;
+import okhttp3.*;
+import okhttp3.Request;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -68,6 +76,7 @@ public class DashboardActivity extends AppCompatActivity
     private SpotifyApi api = new SpotifyApi();
     public String NOW_PLAYING = null;
     public Image ALBUM_ARTWORK = null;
+    String[] spotifyScopes = new String[]{"streaming", "playlist-read-private", "playlist-read-collaborative", "user-library-read", "user-read-email", "user-read-recently-played", "playlist-read-private", "playlist-read-collaborative"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,7 +128,7 @@ public class DashboardActivity extends AppCompatActivity
         AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID,
                 AuthenticationResponse.Type.TOKEN,
                 REDIRECT_URI);
-        builder.setScopes(new String[]{"streaming", "playlist-read-private", "playlist-read-collaborative", "user-library-read", "user-read-email"});
+        builder.setScopes(spotifyScopes);
         AuthenticationRequest request = builder.build();
 
         AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
@@ -219,6 +228,7 @@ public class DashboardActivity extends AppCompatActivity
                 api.setAccessToken(response.getAccessToken());
                 SpotifyService spotifyService = api.getService();
                 UserPrivate spotifyUser = this.getSpotifyUser(spotifyService);
+                this.getRecentlyPlayed(response.getAccessToken());
                 this.getSpotifyTrack(spotifyService);
                 Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
                 Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
@@ -227,7 +237,7 @@ public class DashboardActivity extends AppCompatActivity
                         mPlayer = player;
                         mPlayer.addConnectionStateCallback(DashboardActivity.this);
                         mPlayer.addPlayerNotificationCallback(DashboardActivity.this);
-                        mPlayer.play("spotify:track:6WTZqt2ghvOxdmXCpGb84Z");
+                        //mPlayer.play("spotify:track:6WTZqt2ghvOxdmXCpGb84Z");
                     }
 
                     @Override
@@ -237,6 +247,20 @@ public class DashboardActivity extends AppCompatActivity
                 });
             }
         }
+    }
+
+    private String getRecentlyPlayed(String accessToken) {
+        String url = "https://api.spotify.com/v1/me/player/recently-played";
+        //String playListUrl = "https://api.spotify.com/v1/users/{user_id}/playlists";
+        //playListUrl = playListUrl.replace("{user_id}", spotifyUser.id);
+        try {
+            String recentlyPlayed = new RetrieveData().execute(url, accessToken).get();
+            //String playLists = new RetrieveData().execute(playListUrl, accessToken).get();
+            //System.out.println("*** playlists: " + playLists);
+        } catch (Exception e) {
+            System.out.println("BRUH BRUH " + e);
+        }
+        return "";
     }
 
     public UserPrivate getSpotifyUser(SpotifyService spotifyService){

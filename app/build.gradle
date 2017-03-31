@@ -3,7 +3,7 @@ apply plugin: 'com.google.gms.google-services'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         applicationId "com.brogrammers.paulo.gymagenda"
@@ -38,4 +38,5 @@ dependencies {
     compile 'com.spotify.sdk:spotify-auth:1.0.0-beta13@aar'
     compile 'com.spotify.sdk:spotify-player:1.0.0-beta13@aar'
     compile 'com.github.kaaes:spotify-web-api-android:0.4.1'
+    compile 'com.squareup.okhttp3:okhttp:3.6.0'
 }
