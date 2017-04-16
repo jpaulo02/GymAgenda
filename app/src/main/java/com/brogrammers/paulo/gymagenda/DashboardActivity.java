@@ -20,6 +20,7 @@ import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.brogrammers.paulo.gymagenda.dto.SpotifyTrack;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -38,6 +39,8 @@ import com.spotify.sdk.android.player.Player;
 import com.spotify.sdk.android.player.PlayerNotificationCallback;
 import com.spotify.sdk.android.player.PlayerState;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -51,8 +54,6 @@ import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.UserPrivate;
-import okhttp3.*;
-import okhttp3.Request;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -66,7 +67,8 @@ public class DashboardActivity extends AppCompatActivity
     //private static final String CLIENT_ID = "179355552324-83i4r983iv673977ktvi8o7p7ngi9lju.apps.googleusercontent.com";
     // TODO: Replace with your redirect URI
     private static final String REDIRECT_URI = "gymagenda://callback";
-
+    private String ACCESS_TOKEN = null;
+    private SpotifyApiService spotifyApiService = new SpotifyApiService();
     private Player mPlayer;
     private static final int REQUEST_CODE = 1337;
     private static final String TAG = "DashboardActivity";
@@ -76,7 +78,7 @@ public class DashboardActivity extends AppCompatActivity
     private SpotifyApi api = new SpotifyApi();
     public String NOW_PLAYING = null;
     public Image ALBUM_ARTWORK = null;
-    String[] spotifyScopes = new String[]{"streaming", "playlist-read-private", "playlist-read-collaborative", "user-library-read", "user-read-email", "user-read-recently-played", "playlist-read-private", "playlist-read-collaborative"};
+    String[] spotifyScopes = new String[]{"streaming", "playlist-read-private", "playlist-read-collaborative", "user-library-read", "user-read-email", "user-read-recently-played", "playlist-read-private", "playlist-read-collaborative", "user-read-currently-playing"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,14 +100,13 @@ public class DashboardActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //userNameTextView = (TextView) findViewById(R.id.textView);
-        //userNameTextView.setText(userName);
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //NOW_PLAYING = this.getNowPlaying();
                 Snackbar.make(view, NOW_PLAYING, Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
@@ -228,8 +229,15 @@ public class DashboardActivity extends AppCompatActivity
                 api.setAccessToken(response.getAccessToken());
                 SpotifyService spotifyService = api.getService();
                 UserPrivate spotifyUser = this.getSpotifyUser(spotifyService);
-                this.getRecentlyPlayed(response.getAccessToken());
-                this.getSpotifyTrack(spotifyService);
+                SpotifyTrack track = this.getCurrentlyPlaying(response.getAccessToken());
+                if(track != null) {
+                    System.out.println("beeeeyyyah" + track.getUri());
+                    if(!CollectionUtils.isEmpty(track.getArtists())) {
+                        NOW_PLAYING = track.getArtists().get(0).getName() + " - " + track.getName();
+                        Log.d("DashboardActivity", "** NOW_PLAYING " + NOW_PLAYING);
+                    }
+                }
+                //this.getSpotifyTrack(spotifyService);
                 Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
                 Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
                     @Override
@@ -242,25 +250,20 @@ public class DashboardActivity extends AppCompatActivity
 
                     @Override
                     public void onError(Throwable throwable) {
-                        Log.e("MainActivity", "Could not initialize player: " + throwable.getMessage());
+                        Log.e("DashboardActivity", "Could not initialize player: " + throwable.getMessage());
                     }
                 });
             }
         }
     }
 
-    private String getRecentlyPlayed(String accessToken) {
-        String url = "https://api.spotify.com/v1/me/player/recently-played";
-        //String playListUrl = "https://api.spotify.com/v1/users/{user_id}/playlists";
-        //playListUrl = playListUrl.replace("{user_id}", spotifyUser.id);
+    private SpotifyTrack getCurrentlyPlaying(String accessToken) {
         try {
-            String recentlyPlayed = new RetrieveData().execute(url, accessToken).get();
-            //String playLists = new RetrieveData().execute(playListUrl, accessToken).get();
-            //System.out.println("*** playlists: " + playLists);
+            return spotifyApiService.getCurrentlyPlayingTrack(SpotifyEndpoints.GET_CURRENTLY_PLAYING.getStringValue(), accessToken);
         } catch (Exception e) {
-            System.out.println("BRUH BRUH " + e);
+            System.out.println("Error in getCurrentlyPlaying " + e);
+            return new SpotifyTrack();
         }
-        return "";
     }
 
     public UserPrivate getSpotifyUser(SpotifyService spotifyService){
@@ -276,6 +279,10 @@ public class DashboardActivity extends AppCompatActivity
             }
         });
         return null;
+    }
+
+    private String getNowPlaying() {
+        return NOW_PLAYING;
     }
 
     public String getSpotifyTrack(SpotifyService spotifyService){
