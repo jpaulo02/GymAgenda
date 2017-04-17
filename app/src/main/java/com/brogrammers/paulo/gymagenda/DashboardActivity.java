@@ -1,6 +1,9 @@
 package com.brogrammers.paulo.gymagenda;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -19,6 +22,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.os.StrictMode;
 
 import com.brogrammers.paulo.gymagenda.dto.SpotifyTrack;
 import com.google.android.gms.auth.api.Auth;
@@ -41,6 +45,7 @@ import com.spotify.sdk.android.player.PlayerState;
 
 import org.apache.commons.collections4.CollectionUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -99,6 +104,10 @@ public class DashboardActivity extends AppCompatActivity
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
+        if (android.os.Build.VERSION.SDK_INT > 9) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -106,9 +115,11 @@ public class DashboardActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //NOW_PLAYING = this.getNowPlaying();
-                Snackbar.make(view, NOW_PLAYING, Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                SpotifyTrack track = getNowPlaying();
+                Snackbar.make(view, NOW_PLAYING, Snackbar.LENGTH_LONG).show();
+
+                //snackbar with album artwork
+                //Snackbar.make(view, add(NOW_PLAYING, track.getAlbum().getArtworkList().get(0).getUrl()), Snackbar.LENGTH_LONG).show();
             }
         });
 
@@ -134,6 +145,39 @@ public class DashboardActivity extends AppCompatActivity
 
         AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
         //spotifyAuthentication();
+    }
+
+    private SpannableStringBuilder add(String text, String imageUri) {
+        SpannableStringBuilder ssb = new SpannableStringBuilder();
+        try {
+            Bitmap bmp = getBitmapFromURL(imageUri);
+            bmp = Bitmap.createScaledBitmap(
+                    bmp, bmp.getWidth()/6, bmp.getHeight()/6, false);
+            System.out.println("Is this null or nah " + bmp.getHeight() + " " + bmp.getWidth());
+            ssb.append(" ");
+            ImageSpan is = new ImageSpan(DashboardActivity.this, bmp);
+            ssb.setSpan(is, ssb.length() - 1, ssb.length(), 0);
+            ssb.append("   ");
+            ssb.append(text);
+        } catch (Exception e ) {
+            Log.e("DashboardActivity", "Error adding image to snackbar",e);
+        }
+        return  ssb;
+    }
+
+    public static Bitmap getBitmapFromURL(String src) {
+        try {
+            URL url = new URL(src);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+            Bitmap myBitmap = BitmapFactory.decodeStream(input);
+            return myBitmap;
+        } catch (IOException e) {
+            // Log exception
+            return null;
+        }
     }
 
     @Override
@@ -226,17 +270,18 @@ public class DashboardActivity extends AppCompatActivity
             AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
 
             if (response.getType() == AuthenticationResponse.Type.TOKEN) {
-                api.setAccessToken(response.getAccessToken());
+                ACCESS_TOKEN = response.getAccessToken();
+                api.setAccessToken(ACCESS_TOKEN);
                 SpotifyService spotifyService = api.getService();
                 UserPrivate spotifyUser = this.getSpotifyUser(spotifyService);
-                SpotifyTrack track = this.getCurrentlyPlaying(response.getAccessToken());
+                /*SpotifyTrack track = this.getCurrentlyPlaying(response.getAccessToken());
                 if(track != null) {
                     System.out.println("beeeeyyyah" + track.getUri());
                     if(!CollectionUtils.isEmpty(track.getArtists())) {
                         NOW_PLAYING = track.getArtists().get(0).getName() + " - " + track.getName();
                         Log.d("DashboardActivity", "** NOW_PLAYING " + NOW_PLAYING);
                     }
-                }
+                }*/
                 //this.getSpotifyTrack(spotifyService);
                 Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
                 Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
@@ -281,8 +326,16 @@ public class DashboardActivity extends AppCompatActivity
         return null;
     }
 
-    private String getNowPlaying() {
-        return NOW_PLAYING;
+    private SpotifyTrack getNowPlaying() {
+        SpotifyTrack track = this.getCurrentlyPlaying(ACCESS_TOKEN);
+        if(track != null) {
+            System.out.println("beeeeyyyah" + track.getUri());
+            if(!CollectionUtils.isEmpty(track.getArtists())) {
+                NOW_PLAYING = track.getArtists().get(0).getName() + " - " + track.getName();
+                Log.d("DashboardActivity", "** NOW_PLAYING " + NOW_PLAYING);
+            }
+        }
+        return track;
     }
 
     public String getSpotifyTrack(SpotifyService spotifyService){
