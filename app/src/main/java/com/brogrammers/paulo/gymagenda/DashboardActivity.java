@@ -75,6 +75,7 @@ public class DashboardActivity extends AppCompatActivity
     private String ACCESS_TOKEN = null;
     private SpotifyApiService spotifyApiService = new SpotifyApiService();
     private Player mPlayer;
+    //private SpotifyTrack track;
     private static final int REQUEST_CODE = 1337;
     private static final String TAG = "DashboardActivity";
     private GoogleApiClient mGoogleApiClient;
@@ -115,8 +116,26 @@ public class DashboardActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                System.out.println("** in onclick");
                 SpotifyTrack track = getNowPlaying();
-                Snackbar.make(view, NOW_PLAYING, Snackbar.LENGTH_LONG).show();
+                String test = track.getIs_playing() ? "PAUSE" : "PLAY";
+                Snackbar spotifySnackBar = Snackbar.make(view, NOW_PLAYING, Snackbar.LENGTH_LONG)
+                        .setAction(test, new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                //SpotifyPlayer spotifyPlayer = new SpotifyPlayer(ACCESS_TOKEN, CLIENT_ID);
+                                System.out.println("BRUUUUH");
+                                /*if (track.getIs_playing()) {
+                                    System.out.println("song is playing");
+                                    playSong(false);
+                                } else {
+                                    System.out.println("song is not playing");
+                                    playSong(true);
+                                }*/
+                            }
+                        });
+
+                spotifySnackBar.show();
 
                 //snackbar with album artwork
                 //Snackbar.make(view, add(NOW_PLAYING, track.getAlbum().getArtworkList().get(0).getUrl()), Snackbar.LENGTH_LONG).show();
@@ -145,6 +164,29 @@ public class DashboardActivity extends AppCompatActivity
 
         AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
         //spotifyAuthentication();
+    }
+
+    public void playSong(Boolean playSong) {
+        System.out.println("playSong " + playSong);
+        //System.out.println("song uri: " + track.getUri());
+        if (playSong) {
+            Config playerConfig = new Config(this, ACCESS_TOKEN, CLIENT_ID);
+            Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
+                @Override
+                public void onInitialized(Player player) {
+                    mPlayer = player;
+                    mPlayer.addConnectionStateCallback(DashboardActivity.this);
+                    mPlayer.addPlayerNotificationCallback(DashboardActivity.this);
+                    //mPlayer.play(track.getUri());
+                }
+                @Override
+                public void onError(Throwable throwable) {
+                    Log.e("DashboardActivity", "Could not initialize player: " + throwable.getMessage());
+                }
+            });
+        } else {
+
+        }
     }
 
     private SpannableStringBuilder add(String text, String imageUri) {
